@@ -3,49 +3,68 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Scroll-image-website</title>
+    <title>Scroll Image Website</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Hide the scrollbar in Firefox */
+        * {
+            scrollbar-width: none;
+        }
+    </style>
 </head>
 <body>
+    <!-- Container for the scrolling content -->
     <div class="w-full bg-black">
         <div class="parent w-full relative top-0 left-0 h-[800vh]">
+            <!-- Sticky container for the canvas -->
             <div class="w-full h-screen sticky top-0 left-0">
-                <canvas class="w-full h-screen" id="farme"></canvas>
+                <!-- Canvas element to display images -->
+                <canvas class="w-full h-screen" id="frame"></canvas>
             </div>
         </div>
     </div>
+
+    <!-- GSAP library for animations -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" integrity="sha512-7eHRwcbYkK4d9g/6tD/mhkf++eoTHwpNM9woBxtPUBWm67zeAfFC+HrdoE2GanKeocly/VxeLvIqwvCdk7qScg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <!-- GSAP ScrollTrigger plugin for scroll-based animations -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js" integrity="sha512-onMTRKJBKz8M1TnqqDuGBlowlH0ohFzMXYRNebz+yOcc5TQr/zAKsthzhuv0hiyUKEiQEQXEynnXCvNTOk50dg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    
     <script>
+        // Register the GSAP ScrollTrigger plugin
         gsap.registerPlugin(ScrollTrigger);
 
+        // Get the canvas and its drawing context
         const canvas = document.querySelector("canvas");
         const context = canvas.getContext("2d");
 
+        // Object to keep track of the current and maximum frame index
         const frames = {
             currentIndex: 0,
             maxIndex: 503,
         };
 
-        let imagesLoaded = 0;
-        const images = [];
+        let imagesLoaded = 0;  // Counter for loaded images
+        const images = [];  // Array to store image objects
 
+        // Function to preload images
         function preImages() {
-            for (var i = 1; i <= frames.maxIndex; i++) {
+            for (let i = 1; i <= frames.maxIndex; i++) {
                 const imageUrl = `./frame/frame_${i.toString().padStart(4, "0")}.jpeg`;
                 const img = new Image();
                 img.src = imageUrl;
-                img.onload = function() {
+                img.onload = function () {
                     imagesLoaded++;
+                    // When all images are loaded, start animation
                     if (imagesLoaded === frames.maxIndex) {
                         loadImage(frames.currentIndex);
                         startAnimation();
                     }
                 };
-                images.push(img);
+                images.push(img);  // Add image to the images array
             }
         }
 
+        // Function to load and draw image at the specified index
         function loadImage(index) {
             if (index >= 0 && index < frames.maxIndex) {
                 const img = images[index];
@@ -59,36 +78,45 @@
                 const offsetX = (canvas.width - newWidth) / 2;
                 const offsetY = (canvas.height - newHeight) / 2;
 
+                // Clear the canvas and draw the image
                 context.clearRect(0, 0, canvas.width, canvas.height);
                 context.imageSmoothingEnabled = true;
                 context.imageSmoothingQuality = "high";
                 context.drawImage(img, offsetX, offsetY, newWidth, newHeight);
-                frames.currentIndex = index;
+
+                frames.currentIndex = index;  // Update the current index
             }
         }
 
+        // Function to start the scroll-based animation
         function startAnimation() {
             gsap.timeline({
                 scrollTrigger: {
-                    trigger: ".parent",
-                    start: "top top",
-                    scrub: 2,
-                }
+                    trigger: ".parent",  // Element that triggers the animation
+                    start: "top top",    // Start animation when top of trigger element hits top of viewport
+                    scrub: 2,            // Smooth scrubbing
+                },
             }).to(frames, {
                 currentIndex: frames.maxIndex,
-                onUpdate: function() {
-                    loadImage(Math.floor(frames.currentIndex));
-                }
+                onUpdate: function () {
+                    loadImage(Math.floor(frames.currentIndex));  // Load image for the current frame index
+                },
             });
         }
 
+        // Function to initialize the canvas size
         function initializeCanvas() {
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
         }
 
-        window.addEventListener('resize', initializeCanvas);
+        // Adjust the canvas size on window resize
+        window.addEventListener("resize", initializeCanvas);
+
+        // Initialize canvas size on page load
         initializeCanvas();
+
+        // Preload images
         preImages();
     </script>
 </body>
